@@ -1,93 +1,361 @@
-<!DOCTYPE html>
-<html lang="ur" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taskly - Delivery Service</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-</head>
-<body class="bg-gray-50">
-  <div id="root"></div>
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import {
+  Package, MapPin, Clock, MessageCircle, Wallet, User, Home, ListOrdered,
+  Camera, Mic, FileText, ChevronRight, ChevronLeft, Plus, Check, X,
+  Star, Bike, ShieldAlert, Settings, LayoutGrid, Users, Store, Ticket,
+  TrendingUp, AlertTriangle, Send, ArrowUpRight, ArrowDownRight, Bell,
+  LogOut, Search, Filter, Timer, CheckCircle2, Circle,
+  PauseCircle, PlayCircle, Globe, Moon, Sun, Zap, Award, Copy, Gift,
+  Image as ImageIcon, AlertCircle, Pencil, Trash2, Briefcase, ShoppingCart
+} from "lucide-react";
 
-  <script type="text/babel">
-    const { useState, useMemo, useEffect } = React;
+/* ============================================================
+   TASKLY — Delivery Service Prototype
+   Palette: warm white + light-orange accent, minimal & clean
+   ============================================================ */
 
-    const T = {
-      ur: {
-        appName: "Taskly",
-        tagline: "کوئی بھی چاہیے، فورا پہنچے گا",
-        chooseRole: "जारी رکھنے کے لئے انتخاب کریں",
-        customer: "کسٹمر",
-        customerDesc: "کہیں سے بھی کچھ منگوائیں",
-        shopkeeper: "شاپ کیپر",
-        shopkeeperDesc: "آرڈر ڈیلیوری کے لئے بھیجیں",
-        rider: "رائڈر",
-        riderDesc: "آرڈر ڈیلیوری کرو اور کمائیں",
-        admin: "ایڈمن",
-        adminDesc: "پورا پلیٹ فارم مینج کریں",
-        phone: "فون نمبر",
-        sendOtp: "OTP بھیجیں",
-        otp: "OTP درج کریں",
-        verify: "تصدیق اور جاری رکھیں",
-        newOrder: "نیا آرڈر",
-        orders: "آرڈرز",
-        wallet: "والٹ",
-        profile: "پروفائل",
-        whatDoYouNeed: "آپ کو کیا چاہیے؟",
-        describeText: "تفصیل لکھیں",
-        voiceNote: "وائس نوٹ ریکارڈ کریں",
-        addPhoto: "تصویر شامل کریں",
-        addDocument: "دستاویز شامل کریں",
-        selectZone: "اپنا زون منتخب کریں",
-        specialInstructions: "خصوصی ہدایات (اختیازی)",
-        placeOrder: "آرڈر دیں",
-        urgent: "ارجنٹ (فوری ٹاپ پر نشان دیں)",
-        urgentDesc: "فاسٹر ڈیلوری، اضافی چارج",
-        activeOrders: "جاری آرڈرز",
-        pastOrders: "پرانے آرڈرز",
-        noOrders: "کوئی آرڈر نہیں",
-        reorder: "دوبارہ آرڈر",
-        rateRider: "رائڈر کو ریٹ کریں",
-        chat: "چٹ ود رائڈر",
-        dispute: "اسپیوٹ یہ بل",
-        payNow: "پئے ناؤ",
-        cash: "کیش آن ڈیلیوری",
-        online: "آن لائن ٹرانسفر",
-        walletBalance: "والٹ بیلنس",
-        withdrawRequest: "رقم کی واپسی (Withdraw)",
-        myShifts: "میرے شفٹس",
-        available: "دستیاب",
-        offline: "آف لائن",
-        onBreak: "بریک پر",
-        zones: "زونز",
-        riders: "رائڈرز",
-        disputes: "ڈسپیوٹس",
-        analytics: "اینالیٹکس",
-        dashboard: "ڈیش بورڈ",
-        promoCodes: "پرومو کوڈز",
-        logout: "لاگ آؤٹ"
-      }
-    };
+const T = {
+  en: {
+    appName: "Taskly", tagline: "Anything you need, delivered.",
+    chooseRole: "Choose how you want to continue",
+    customer: "Customer", customerDesc: "Order anything from anywhere",
+    shopkeeper: "Shopkeeper", shopkeeperDesc: "Send your orders for delivery",
+    rider: "Rider", riderDesc: "Deliver orders & earn",
+    admin: "Admin", adminDesc: "Manage the whole platform",
+    phone: "Phone number", sendOtp: "Send OTP", otp: "Enter OTP", verify: "Verify & Continue",
+    newOrder: "New Order", orders: "Orders", wallet: "Wallet", profile: "Profile",
+    whatDoYouNeed: "What do you need today?",
+    describeText: "Describe in text", voiceNote: "Record voice note", addPhoto: "Add photo", addDoc: "Add document",
+    selectZone: "Select your zone", specialInstructions: "Special instructions (optional)",
+    placeOrder: "Place Order", urgent: "Mark as Urgent", urgentDesc: "Faster delivery, extra charge",
+    activeOrders: "Active Orders", pastOrders: "Order History", noOrders: "No orders yet",
+    reorder: "Reorder", rateRider: "Rate your rider", chat: "Chat with rider", disputeBill: "Dispute this bill",
+    payNow: "Pay Now", cash: "Cash on delivery", online: "Online transfer", walletBalance: "Wallet balance",
+    withdrawRequest: "Request Withdraw", myShifts: "My Shifts", available: "Available", offline: "Offline",
+    onBreak: "On Break", zones: "Zones", riders: "Riders", disputes: "Disputes", analytics: "Analytics",
+    dashboard: "Dashboard", promoCodes: "Promo Codes", logout: "Log out",
+  },
+  ur: {
+    appName: "Taskly", tagline: "جو بھی چاہیے، ڈیلیور ہوگا۔",
+    chooseRole: "جاری رکھنے کے لیے منتخب کریں",
+    customer: "کسٹمر", customerDesc: "کہیں سے بھی کچھ بھی منگوائیں",
+    shopkeeper: "شاپ کیپر", shopkeeperDesc: "اپنے آرڈرز ڈلیوری کے لیے بھیجیں",
+    rider: "رائیڈر", riderDesc: "آرڈر ڈلیور کریں اور کمائیں",
+    admin: "ایڈمن", adminDesc: "پورا پلیٹ فارم مینج کریں",
+    phone: "فون نمبر", sendOtp: "OTP بھیجیں", otp: "OTP درج کریں", verify: "تصدیق اور جاری رکھیں",
+    newOrder: "نیا آرڈر", orders: "آرڈرز", wallet: "والٹ", profile: "پروفائل",
+    whatDoYouNeed: "آج آپ کو کیا چاہیے؟",
+    describeText: "تفصیل لکھیں", voiceNote: "وائس نوٹ ریکارڈ کریں", addPhoto: "تصویر شامل کریں", addDoc: "دستاویز شامل کریں",
+    selectZone: "اپنا زون منتخب کریں", specialInstructions: "خصوصی ہدایات (اختیاری)",
+    placeOrder: "آرڈر دیں", urgent: "ارجنٹ کے طور پر نشان زد کریں", urgentDesc: "تیز ڈلیوری، اضافی چارج",
+    activeOrders: "جاری آرڈرز", pastOrders: "آرڈر ہسٹری", noOrders: "ابھی کوئی آرڈر نہیں",
+    reorder: "دوبارہ آرڈر کریں", rateRider: "رائیڈر کو ریٹ کریں", chat: "رائیڈر سے چیٹ کریں", disputeBill: "بل پر اعتراض کریں",
+    payNow: "ابھی ادا کریں", cash: "کیش آن ڈلیوری", online: "آن لائن ٹرانسفر", walletBalance: "والٹ بیلنس",
+    withdrawRequest: "ودراول کی درخواست", myShifts: "میری شفٹیں", available: "دستیاب", offline: "آف لائن",
+    onBreak: "وقفے پر", zones: "زونز", riders: "رائیڈرز", disputes: "شکایات", analytics: "تجزیات",
+    dashboard: "ڈیش بورڈ", promoCodes: "پرومو کوڈز", logout: "لاگ آؤٹ",
+  }
+};
 
-    const CITIES = ["Lahore"];
-    const ZONES = [
-      { id: 'z1', name: 'Gulberg', charge: 100, platformFee: 20 }
-    ];
+/* ---------------- Seed Data ---------------- */
+const CITY = "Lahore";
+const ZONES = [
+  { id: "z1", name: "Gulberg", charge: 100, platformFee: 20, timer: 40, shopkeeperCharge: 60, status: "open", hours: "8:00 AM – 8:00 PM", reason: "" },
+  { id: "z2", name: "DHA", charge: 130, platformFee: 25, timer: 35, shopkeeperCharge: 80, status: "open", hours: "8:00 AM – 11:00 PM", reason: "" },
+  { id: "z3", name: "Bahria Town", charge: 150, platformFee: 25, timer: 50, shopkeeperCharge: 90, status: "open", hours: "8:00 AM – 12:00 AM", reason: "" },
+  { id: "z4", name: "Johar Town", charge: 90, platformFee: 15, timer: 35, shopkeeperCharge: 55, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z5", name: "Model Town", charge: 100, platformFee: 18, timer: 35, shopkeeperCharge: 60, status: "paused", hours: "9:00 AM – 9:00 PM", reason: "Heavy rain in the area — service paused for rider safety" },
+];
 
-    function App0() {
-      const [screen, setScreen] = useState('landing');
-      return (
-        <div className="p-4 text-center">
-          <h1 className="text-2xl font-bold text-orange-600">Taskly App</h1>
-          <p className="mt-2 text-gray-700">موبائل پر کامیابی سے چل رہی ہے!</p>
+const RIDERS = [
+  { id: "r1", name: "Asad Ali", zone: "z1", status: "available", rating: 4.8, completed: 214, wallet: 3450, late: 3, account: { holderName: "Asad Ali", bank: "JazzCash", number: "0300-1234567", iban: "PK24JCMA0000001234567" } },
+  { id: "r2", name: "Bilal Khan", zone: "z2", status: "busy", rating: 4.6, completed: 176, wallet: 2100, late: 5, account: { holderName: "Muhammad Bilal Khan", bank: "Easypaisa", number: "0321-5567890", iban: "PK11TMFB0000005567890" } },
+  { id: "r3", name: "Usman Tariq", zone: "z1", status: "offline", rating: 4.9, completed: 301, wallet: 5670, late: 1, account: { holderName: "Usman Tariq", bank: "Meezan Bank", number: "0001234567", iban: "PK36MEZN0001234567" } },
+];
+
+const DEFAULT_ADMIN_ACCOUNT = { bankName: "Meezan Bank", accountHolder: "Taskly Private Limited", accountNumber: "0123456789012345", iban: "PK12MEZN0009988776" };
+
+function autoAssignRider(zoneId) {
+  const inZone = RIDERS.filter((r) => r.zone === zoneId && r.status !== "suspended");
+  const available = inZone.find((r) => r.status === "available");
+  return (available || inZone[0] || RIDERS[0]).id;
+}
+
+const STATUS_STEPS = ["placed", "preparing", "packing", "out_for_delivery", "arrived", "delivered"];
+const STATUS_LABEL = {
+  placed: "Order Placed", preparing: "Preparing", packing: "Packing",
+  out_for_delivery: "Out for Delivery", arrived: "Rider Arrived", delivered: "Delivered",
+};
+
+const SEED_ORDERS = [
+  {
+    id: "TK-1042", type: "customer", zone: "z1", status: "out_for_delivery", riderId: "r1",
+    text: "2kg chicken, 1 dozen eggs, and a loaf of bread from Meat Corner", images: [], urgent: false,
+    createdAt: Date.now() - 1000 * 60 * 18, bill: { amount: 850, uploaded: true },
+    payment: { method: "cash", status: "pending" }, chat: [
+      { from: "rider", text: "On my way to the shop now!" },
+      { from: "customer", text: "Great, thank you!" },
+    ],
+  },
+];
+
+const fmt = (n) => `Rs. ${Number(n).toLocaleString()}`;
+
+function Badge({ children, tone = "default" }) {
+  const tones = {
+    default: "bg-stone-100 text-stone-600",
+    orange: "bg-orange-50 text-orange-700 border border-orange-200",
+    green: "bg-emerald-50 text-emerald-700",
+    red: "bg-red-50 text-red-600",
+    amber: "bg-amber-50 text-amber-700",
+  };
+  return <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tones[tone]}`}>{children}</span>;
+}
+
+function IconBtn({ icon: Icon, onClick, active }) {
+  return (
+    <button onClick={onClick}
+      className={`w-9 h-9 rounded-full flex items-center justify-center transition ${active ? "bg-orange-500 text-white" : "bg-white text-stone-500 border border-stone-200 hover:border-orange-300"}`}>
+      <Icon size={16} strokeWidth={1.8} />
+    </button>
+  );
+}
+
+function PrimaryButton({ children, onClick, full, disabled, small, className = "" }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      className={`${full ? "w-full" : ""} ${small ? "px-4 py-2.5 text-sm" : "px-6 py-3.5 text-[15px]"} bg-orange-500 hover:bg-orange-600 disabled:bg-stone-200 disabled:text-stone-400 text-white rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2 ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+function GhostButton({ children, onClick, full, small, className = "" }) {
+  return (
+    <button onClick={onClick}
+      className={`${full ? "w-full" : ""} ${small ? "px-4 py-2.5 text-sm" : "px-6 py-3.5 text-[15px]"} bg-white hover:bg-orange-50 text-stone-700 border border-stone-200 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+function TicketCard({ children, className = "" }) {
+  return (
+    <div className={`relative bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden ${className}`}>
+      <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF9F6] border border-stone-200" />
+      <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF9F6] border border-stone-200" />
+      {children}
+    </div>
+  );
+}
+
+export default function App() {
+  const [screen, setScreen] = useState("roleselect");
+  const [role, setRole] = useState(null);
+  const [lang, setLang] = useState("en");
+  const [dark, setDark] = useState(false);
+  const [confirmExit, setConfirmExit] = useState(false);
+  const [allOrders, setAllOrders] = useState(SEED_ORDERS);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [adminAccount, setAdminAccount] = useState(DEFAULT_ADMIN_ACCOUNT);
+  const [serviceProviders, setServiceProviders] = useState([]);
+  const [riders, setRiders] = useState(RIDERS);
+  const [customerProfile, setCustomerProfile] = useState({ name: "Zafar Iqbal", phone: "0300 1234567" });
+  const t = T[lang];
+
+  return (
+    <div className={dark ? "dark" : ""}>
+      <div className="min-h-screen bg-[#FAF9F6] text-stone-900 font-[Inter]">
+        {screen === "roleselect" && !role && <RoleSelect onSelect={setRole} lang={lang} setLang={setLang} t={t} />}
+        {role === "customer" && <CustomerApp t={t} lang={lang} setLang={setLang} onExit={() => setRole(null)} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} adminAccount={adminAccount} riders={riders} customerProfile={customerProfile} setCustomerProfile={setCustomerProfile} />}
+        {role === "shopkeeper" && <ShopkeeperApp t={t} lang={lang} setLang={setLang} onExit={() => setRole(null)} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} adminAccount={adminAccount} />}
+        {role === "rider" && <RiderApp t={t} lang={lang} setLang={setLang} onExit={() => setRole(null)} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} withdrawals={withdrawals} setWithdrawals={setWithdrawals} adminAccount={adminAccount} riders={riders} setRiders={setRiders} customerProfile={customerProfile} />}
+        {role === "admin" && <AdminApp t={t} lang={lang} setLang={setLang} onExit={() => setRole(null)} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} withdrawals={withdrawals} setWithdrawals={setWithdrawals} adminAccount={adminAccount} setAdminAccount={setAdminAccount} serviceProviders={serviceProviders} setServiceProviders={setServiceProviders} riders={riders} setRiders={setRiders} customerProfile={customerProfile} />}
+      </div>
+    </div>
+  );
+}
+
+function RoleSelect({ onSelect, lang, setLang, t }) {
+  const roles = [
+    { key: "customer", icon: Home, label: t.customer, desc: t.customerDesc },
+    { key: "shopkeeper", icon: Store, label: t.shopkeeper, desc: t.shopkeeperDesc },
+    { key: "rider", icon: Bike, label: t.rider, desc: t.riderDesc },
+    { key: "admin", icon: Settings, label: t.admin, desc: t.adminDesc },
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative">
+      <button onClick={() => setLang(lang === "en" ? "ur" : "en")}
+        className="absolute top-6 right-6 flex items-center gap-1.5 text-sm text-stone-500 hover:text-orange-600 transition">
+        <Globe size={15} /> {lang === "en" ? "اردو" : "English"}
+      </button>
+
+      <div className="w-full max-w-sm">
+        <div className="flex items-center gap-2 mb-1 justify-center">
+          <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center">
+            <Package size={20} className="text-white" />
+          </div>
+          <h1 className="font-display text-3xl font-bold">{t.appName}</h1>
         </div>
-      );
-    }
+        <p className="text-center text-stone-500 text-sm mb-10">{t.tagline}</p>
 
-    ReactDOM.render(<App0 />, document.getElementById('root'));
-  </script>
-</body>
-</html>
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-wide text-stone-400 font-medium mb-3 text-center">{t.chooseRole}</p>
+          {roles.map((r) => (
+            <button key={r.key} onClick={() => onSelect(r.key)}
+              className="w-full flex items-center gap-4 bg-white border border-stone-200 hover:border-orange-300 hover:shadow-md rounded-2xl p-4 transition text-left group">
+              <div className="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-500 transition">
+                <r.icon size={20} className="text-orange-500 group-hover:text-white transition" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-stone-800">{r.label}</div>
+                <div className="text-xs text-stone-400">{r.desc}</div>
+              </div>
+              <ChevronRight size={18} className="text-stone-300" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({ tabs, active, setActive }) {
+  return (
+    <div className="fixed bottom-0 inset-x-0 z-20 bg-white border-t border-stone-200 px-1 py-2 flex justify-around max-w-md mx-auto">
+      {tabs.map((tab) => (
+        <button key={tab.key} onClick={() => setActive(tab.key)}
+          className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition ${active === tab.key ? "text-orange-600" : "text-stone-400"}`}>
+          <tab.icon size={20} strokeWidth={1.8} />
+          <span className="text-[10px] font-medium">{tab.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ================= Customer Portal ================= */
+function CustomerApp({ t, lang, setLang, onExit, allOrders, setAllOrders }) {
+  const [tab, setTab] = useState("home");
+  const orders = allOrders.filter((o) => o.type === "customer");
+  
+  const addOrder = (text) => {
+    const newOrd = {
+      id: "TK-" + Math.floor(1000 + Math.random() * 9000),
+      type: "customer", zone: "z1", status: "placed", riderId: autoAssignRider("z1"),
+      text, images: [], urgent: false, createdAt: Date.now(),
+      bill: { amount: 500, uploaded: false }, payment: { method: "cash", status: "pending" }, chat: []
+    };
+    setAllOrders([newOrd, ...allOrders]);
+    setTab("orders");
+  };
+
+  const tabs = [
+    { key: "home", label: t.newOrder, icon: Plus },
+    { key: "orders", label: t.orders, icon: ListOrdered },
+    { key: "wallet", label: t.wallet, icon: Wallet },
+    { key: "profile", label: t.profile, icon: User },
+  ];
+
+  return (
+    <div className="max-w-md mx-auto min-h-screen relative pb-24">
+      <div className="sticky top-0 z-20 bg-[#FAF9F6]/90 backdrop-blur border-b border-stone-200 px-5 py-4 flex items-center justify-between">
+        <h1 className="font-display font-bold text-lg">{t.appName} (Customer)</h1>
+        <div className="flex items-center gap-2">
+          <IconBtn icon={Globe} onClick={() => setLang(lang === "en" ? "ur" : "en")} />
+          <IconBtn icon={LogOut} onClick={onExit} />
+        </div>
+      </div>
+
+      {tab === "home" && <CustomerHome onSubmit={addOrder} />}
+      {tab === "orders" && <CustomerOrders orders={orders} />}
+      {tab === "wallet" && <div className="p-5 text-center"><p className="text-stone-500">Wallet balance: Rs. 0</p></div>}
+      {tab === "profile" && <div className="p-5 text-center"><p className="text-stone-500">Zafar Iqbal (Customer Profile)</p></div>}
+
+      <BottomNav tabs={tabs} active={tab} setActive={setTab} />
+    </div>
+  );
+}
+
+function CustomerHome({ onSubmit }) {
+  const [text, setText] = useState("");
+  return (
+    <div className="p-5 space-y-4">
+      <h2 className="font-display font-bold text-xl">What do you need today?</h2>
+      <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Describe items, e.g. 2kg potatoes & milk..."
+        className="w-full border border-stone-200 rounded-2xl p-4 h-32 outline-none focus:border-orange-400 bg-white" />
+      <PrimaryButton full onClick={() => text && onSubmit(text)}>Place Order</PrimaryButton>
+    </div>
+  );
+}
+
+function CustomerOrders({ orders }) {
+  return (
+    <div className="p-5 space-y-3">
+      <h2 className="font-display font-bold text-xl mb-3">Your Orders</h2>
+      {orders.length === 0 ? <p className="text-stone-400 text-center py-10">No orders yet.</p> : orders.map(o => (
+        <TicketCard key={o.id} className="p-4 space-y-2">
+          <div className="flex justify-between text-xs font-mono-tk text-stone-400">
+            <span>{o.id}</span>
+            <Badge tone="orange">{STATUS_LABEL[o.status]}</Badge>
+          </div>
+          <p className="text-sm font-medium">{o.text}</p>
+        </TicketCard>
+      ))}
+    </div>
+  );
+}
+
+/* ================= Shopkeeper Portal ================= */
+function ShopkeeperApp({ t, lang, setLang, onExit, allOrders, setAllOrders }) {
+  return (
+    <div className="max-w-md mx-auto min-h-screen p-5">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="font-display font-bold text-lg">{t.appName} (Shopkeeper)</h1>
+        <IconBtn icon={LogOut} onClick={onExit} />
+      </div>
+      <p className="text-stone-500 text-sm">Shopkeeper portal is active. Manage your pickups and order items here.</p>
+    </div>
+  );
+}
+
+/* ================= Rider Portal ================= */
+function RiderApp({ t, lang, setLang, onExit, allOrders, setAllOrders, riders, setRiders }) {
+  const assignedOrders = allOrders.filter(o => o.riderId === "r1");
+  return (
+    <div className="max-w-md mx-auto min-h-screen p-5 pb-20">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="font-display font-bold text-lg">{t.appName} (Rider)</h1>
+        <IconBtn icon={LogOut} onClick={onExit} />
+      </div>
+      <h2 className="font-semibold mb-3">Assigned Deliveries ({assignedOrders.length})</h2>
+      <div className="space-y-3">
+        {assignedOrders.map(o => (
+          <TicketCard key={o.id} className="p-4">
+            <p className="text-xs font-mono-tk text-orange-600 mb-1">{o.id}</p>
+            <p className="text-sm">{o.text}</p>
+          </TicketCard>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ================= Admin Portal ================= */
+function AdminApp({ t, lang, setLang, onExit, allOrders, setAllOrders }) {
+  return (
+    <div className="max-w-md mx-auto min-h-screen p-5">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="font-display font-bold text-lg">{t.appName} (Admin Dashboard)</h1>
+        <IconBtn icon={LogOut} onClick={onExit} />
+      </div>
+      <div className="space-y-3">
+        <div className="bg-white p-4 rounded-2xl border border-stone-200">
+          <p className="text-xs text-stone-400">Total Orders Placed</p>
+          <p className="text-2xl font-bold font-display">{allOrders.length}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
