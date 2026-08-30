@@ -33,3 +33,271 @@
     </div>
 </body>
 </html>
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import {
+  Package, MapPin, Clock, MessageCircle, Wallet, User, Home, ListOrdered,
+  Camera, Mic, FileText, ChevronRight, ChevronLeft, Plus, Check, X,
+  Star, Bike, ShieldAlert, Settings, LayoutGrid, Users, Store, Ticket,
+  TrendingUp, AlertTriangle, Send, ArrowUpRight, ArrowDownRight, Bell,
+  LogOut, Search, Filter, Timer, CheckCircle2, Circle,
+  PauseCircle, PlayCircle, Globe, Moon, Sun, Zap, Award, Copy, Gift,
+  Image as ImageIcon, AlertCircle, Pencil, Trash2, Briefcase
+} from "lucide-react";
+
+/* ============================================================
+   TASKLY — Delivery Service Prototype
+   Palette: warm white + light-orange accent, minimal & clean
+   ============================================================ */
+
+const T = {
+  en: {
+    appName: "Taskly", tagline: "Anything you need, delivered.",
+    chooseRole: "Choose how you want to continue",
+    customer: "Customer", customerDesc: "Order anything from anywhere",
+    shopkeeper: "Shopkeeper", shopkeeperDesc: "Send your orders for delivery",
+    rider: "Rider", riderDesc: "Deliver orders & earn",
+    admin: "Admin", adminDesc: "Manage the whole platform",
+    phone: "Phone number", sendOtp: "Send OTP", otp: "Enter OTP", verify: "Verify & Continue",
+    newOrder: "New Order", orders: "Orders", wallet: "Wallet", profile: "Profile",
+    whatDoYouNeed: "What do you need today?",
+    describeText: "Describe in text", voiceNote: "Record voice note", addPhoto: "Add photo", addDoc: "Add document",
+    selectZone: "Select your zone", specialInstructions: "Special instructions (optional)",
+    placeOrder: "Place Order", urgent: "Mark as Urgent", urgentDesc: "Faster delivery, extra charge",
+    activeOrders: "Active Orders", pastOrders: "Order History", noOrders: "No orders yet",
+    reorder: "Reorder", rateRider: "Rate your rider", chat: "Chat with rider", disputeBill: "Dispute this bill",
+    payNow: "Pay Now", cash: "Cash on delivery", online: "Online transfer", walletBalance: "Wallet balance",
+    withdrawRequest: "Request Withdraw", myShifts: "My Shifts", available: "Available", offline: "Offline",
+    onBreak: "On Break", zones: "Zones", riders: "Riders", disputes: "Disputes", analytics: "Analytics",
+    dashboard: "Dashboard", promoCodes: "Promo Codes", logout: "Log out",
+  },
+  ur: {
+    appName: "Taskly", tagline: "جو بھی چاہیے، ڈیلیور ہوگا۔",
+    chooseRole: "جاری رکھنے کے لیے منتخب کریں",
+    customer: "کسٹمر", customerDesc: "کہیں سے بھی کچھ بھی منگوائیں",
+    shopkeeper: "شاپ کیپر", shopkeeperDesc: "اپنے آرڈرز ڈلیوری کے لیے بھیجیں",
+    rider: "رائیڈر", riderDesc: "آرڈر ڈلیور کریں اور کمائیں",
+    admin: "ایڈمن", adminDesc: "پورا پلیٹ فارم مینج کریں",
+    phone: "فون نمبر", sendOtp: "OTP بھیجیں", otp: "OTP درج کریں", verify: "تصدیق اور جاری رکھیں",
+    newOrder: "نیا آرڈر", orders: "آرڈرز", wallet: "والٹ", profile: "پروفائل",
+    whatDoYouNeed: "آج آپ کو کیا چاہیے؟",
+    describeText: "تفصیل لکھیں", voiceNote: "وائس نوٹ ریکارڈ کریں", addPhoto: "تصویر شامل کریں", addDoc: "دستاویز شامل کریں",
+    selectZone: "اپنا زون منتخب کریں", specialInstructions: "خصوصی ہدایات (اختیاری)",
+    placeOrder: "آرڈر دیں", urgent: "ارجنٹ کے طور پر نشان زد کریں", urgentDesc: "تیز ڈلیوری، اضافی چارج",
+    activeOrders: "جاری آرڈرز", pastOrders: "آرڈر ہسٹری", noOrders: "ابھی کوئی آرڈر نہیں",
+    reorder: "دوبارہ آرڈر کریں", rateRider: "رائیڈر کو ریٹ کریں", chat: "رائیڈر سے چیٹ کریں", disputeBill: "بل پر اعتراض کریں",
+    payNow: "ابھی ادا کریں", cash: "کیش آن ڈلیوری", online: "آن لائن ٹرانسفر", walletBalance: "والٹ بیلنس",
+    withdrawRequest: "ودراول کی درخواست", myShifts: "میری شفٹیں", available: "دستیاب", offline: "آف لائن",
+    onBreak: "وقفے پر", zones: "زونز", riders: "رائیڈرز", disputes: "شکایات", analytics: "تجزیات",
+    dashboard: "ڈیش بورڈ", promoCodes: "پرومو کوڈز", logout: "لاگ آؤٹ",
+  }
+};
+
+/* ---------------- Seed Data ---------------- */
+const CITY = "Lahore";
+const ZONES = [
+  { id: "z1", name: "Gulberg", charge: 100, platformFee: 20, timer: 40, shopkeeperCharge: 60, status: "open", hours: "8:00 AM – 8:00 PM", reason: "" },
+  { id: "z2", name: "DHA", charge: 130, platformFee: 25, timer: 35, shopkeeperCharge: 80, status: "open", hours: "8:00 AM – 11:00 PM", reason: "" },
+  { id: "z3", name: "Bahria Town", charge: 150, platformFee: 25, timer: 50, shopkeeperCharge: 90, status: "open", hours: "8:00 AM – 12:00 AM", reason: "" },
+  { id: "z4", name: "Johar Town", charge: 90, platformFee: 15, timer: 35, shopkeeperCharge: 55, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z5", name: "Model Town", charge: 100, platformFee: 18, timer: 35, shopkeeperCharge: 60, status: "paused", hours: "9:00 AM – 9:00 PM", reason: "Heavy rain in the area — service paused for rider safety" },
+  { id: "z6", name: "Wapda Town", charge: 110, platformFee: 18, timer: 40, shopkeeperCharge: 65, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z7", name: "Iqbal Town", charge: 95, platformFee: 15, timer: 40, shopkeeperCharge: 58, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z8", name: "Township", charge: 95, platformFee: 15, timer: 40, shopkeeperCharge: 58, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z9", name: "Faisal Town", charge: 100, platformFee: 18, timer: 35, shopkeeperCharge: 60, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z10", name: "Garden Town", charge: 100, platformFee: 18, timer: 35, shopkeeperCharge: 60, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z11", name: "Cantt", charge: 140, platformFee: 25, timer: 40, shopkeeperCharge: 85, status: "open", hours: "8:00 AM – 11:00 PM", reason: "" },
+  { id: "z12", name: "Askari", charge: 140, platformFee: 25, timer: 40, shopkeeperCharge: 85, status: "open", hours: "8:00 AM – 11:00 PM", reason: "" },
+  { id: "z13", name: "Allama Iqbal Town", charge: 90, platformFee: 15, timer: 40, shopkeeperCharge: 55, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z14", name: "Samanabad", charge: 85, platformFee: 15, timer: 40, shopkeeperCharge: 52, status: "open", hours: "8:00 AM – 9:00 PM", reason: "" },
+  { id: "z15", name: "Shadman", charge: 100, platformFee: 18, timer: 35, shopkeeperCharge: 60, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z16", name: "Muslim Town", charge: 90, platformFee: 15, timer: 35, shopkeeperCharge: 55, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z17", name: "Mustafa Town", charge: 95, platformFee: 15, timer: 40, shopkeeperCharge: 58, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z18", name: "Valencia Town", charge: 120, platformFee: 20, timer: 45, shopkeeperCharge: 72, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z19", name: "Green Town", charge: 90, platformFee: 15, timer: 40, shopkeeperCharge: 55, status: "open", hours: "8:00 AM – 9:00 PM", reason: "" },
+  { id: "z20", name: "Shahdara", charge: 110, platformFee: 18, timer: 50, shopkeeperCharge: 65, status: "open", hours: "8:00 AM – 9:00 PM", reason: "" },
+  { id: "z21", name: "Walled City / Old Lahore", charge: 95, platformFee: 15, timer: 45, shopkeeperCharge: 58, status: "open", hours: "9:00 AM – 9:00 PM", reason: "" },
+  { id: "z22", name: "Raiwind Road", charge: 160, platformFee: 25, timer: 55, shopkeeperCharge: 95, status: "open", hours: "9:00 AM – 8:00 PM", reason: "" },
+  { id: "z23", name: "Ferozepur Road", charge: 100, platformFee: 18, timer: 35, shopkeeperCharge: 60, status: "open", hours: "8:00 AM – 10:00 PM", reason: "" },
+  { id: "z24", name: "Multan Road", charge: 110, platformFee: 18, timer: 45, shopkeeperCharge: 65, status: "open", hours: "8:00 AM – 9:00 PM", reason: "" },
+];
+
+const RIDERS = [
+  { id: "r1", name: "Asad Ali", zone: "z1", status: "available", rating: 4.8, completed: 214, wallet: 3450, late: 3, account: { holderName: "Asad Ali", bank: "JazzCash", number: "0300-1234567", iban: "PK24JCMA0000001234567" } },
+  { id: "r2", name: "Bilal Khan", zone: "z2", status: "busy", rating: 4.6, completed: 176, wallet: 2100, late: 5, account: { holderName: "Muhammad Bilal Khan", bank: "Easypaisa", number: "0321-5567890", iban: "PK11TMFB0000005567890" } },
+  { id: "r3", name: "Usman Tariq", zone: "z1", status: "offline", rating: 4.9, completed: 301, wallet: 5670, late: 1, account: { holderName: "Usman Tariq", bank: "Meezan Bank", number: "0001234567", iban: "PK36MEZN0001234567" } },
+];
+
+const DEFAULT_ADMIN_ACCOUNT = { bankName: "Meezan Bank", accountHolder: "Taskly Private Limited", accountNumber: "0123456789012345", iban: "PK12MEZN0009988776" };
+
+// Since all 4 portals share one live order list in this session, a newly placed order
+// needs a rider immediately so it actually shows up in that rider's queue when you switch roles.
+function autoAssignRider(zoneId) {
+  const inZone = RIDERS.filter((r) => r.zone === zoneId && r.status !== "suspended");
+  const available = inZone.find((r) => r.status === "available");
+  return (available || inZone[0] || RIDERS[0]).id;
+}
+
+const STATUS_STEPS = ["placed", "preparing", "packing", "out_for_delivery", "arrived", "delivered"];
+const STATUS_LABEL = {
+  placed: "Order Placed", preparing: "Preparing", packing: "Packing",
+  out_for_delivery: "Out for Delivery", arrived: "Rider Arrived", delivered: "Delivered",
+};
+
+const SEED_ORDERS = [
+  {
+    id: "TK-1042", type: "customer", zone: "z1", status: "out_for_delivery", riderId: "r1",
+    text: "2kg chicken, 1 dozen eggs, and a loaf of bread from Meat Corner", images: [], urgent: false,
+    createdAt: Date.now() - 1000 * 60 * 18, bill: { amount: 850, uploaded: true },
+    payment: { method: "cash", status: "pending" }, chat: [
+      { from: "rider", text: "On my way to the shop now!" },
+      { from: "customer", text: "Great, thank you!" },
+    ],
+  },
+  {
+    id: "TK-1039", type: "customer", zone: "z1", status: "delivered", riderId: "r1",
+    text: "Panadol and cough syrup from Al-Shifa Pharmacy", images: [], urgent: true,
+    createdAt: Date.now() - 1000 * 60 * 60 * 26, bill: { amount: 420, uploaded: true },
+    payment: { method: "online", status: "paid" }, rating: 5, chat: [],
+  },
+  {
+    id: "TK-1035", type: "shopkeeper", zone: "z1", status: "preparing", riderId: "r3",
+    text: "Pickup 3 parcels from Rahim Store, deliver to Block 5", images: [], urgent: false,
+    createdAt: Date.now() - 1000 * 60 * 6, bill: { amount: 0, uploaded: false },
+    payment: { method: "cash", status: "pending" }, chat: [],
+  },
+];
+
+const fmt = (n) => `Rs. ${Number(n).toLocaleString()}`;
+const timeAgo = (ts) => {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+};
+
+/* ---------------- Small UI atoms ---------------- */
+function Badge({ children, tone = "default" }) {
+  const tones = {
+    default: "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300",
+    orange: "bg-orange-50 dark:bg-orange-500/10 text-orange-700 border border-orange-200 dark:border-orange-500/30",
+    green: "bg-emerald-50 text-emerald-700",
+    red: "bg-red-50 text-red-600",
+    amber: "bg-amber-50 text-amber-700",
+  };
+  return <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tones[tone]}`}>{children}</span>;
+}
+
+function IconBtn({ icon: Icon, onClick, active }) {
+  return (
+    <button onClick={onClick}
+      className={`w-9 h-9 rounded-full flex items-center justify-center transition ${active ? "bg-orange-500 text-white" : "bg-white dark:bg-stone-800 text-stone-500 dark:text-stone-400 dark:text-stone-500 border border-stone-200 dark:border-stone-700 hover:border-orange-300"}`}>
+      <Icon size={16} strokeWidth={1.8} />
+    </button>
+  );
+}
+
+function PrimaryButton({ children, onClick, full, disabled, small, className = "" }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      className={`${full ? "w-full" : ""} ${small ? "px-4 py-2.5 text-sm" : "px-6 py-3.5 text-[15px]"} bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:bg-stone-200 disabled:text-stone-400 dark:text-stone-500 text-white rounded-xl font-semibold shadow-sm shadow-orange-500/20 transition flex items-center justify-center gap-2 ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+function GhostButton({ children, onClick, full, small, className = "" }) {
+  return (
+    <button onClick={onClick}
+      className={`${full ? "w-full" : ""} ${small ? "px-4 py-2.5 text-sm" : "px-6 py-3.5 text-[15px]"} bg-white dark:bg-stone-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 active:bg-orange-100 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+/* Receipt-style ticket card — the signature element: dashed perforation + mono amounts */
+function TicketCard({ children, className = "" }) {
+  return (
+    <div className={`relative bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-2xl shadow-sm overflow-hidden ${className}`}>
+      <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF9F6] border border-stone-200 dark:border-stone-700" />
+      <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF9F6] border border-stone-200 dark:border-stone-700" />
+      {children}
+    </div>
+  );
+}
+
+/* ---------------- App Shell ---------------- */
+export default function App() {
+  const [screen, setScreen] = useState("landing"); // landing | roleselect
+  const [role, setRole] = useState(null); // null | customer | shopkeeper | rider | admin
+  const [lang, setLang] = useState("en");
+  const [dark, setDark] = useState(false);
+  const [confirmExit, setConfirmExit] = useState(false);
+  const [allOrders, setAllOrders] = useState(SEED_ORDERS); // shared across all 4 portals — no backend needed since it's one app instance
+  const [withdrawals, setWithdrawals] = useState([
+    { id: "w1", riderId: "r1", rider: "Asad Ali", amount: 2000, status: "pending" },
+    { id: "w2", riderId: "r3", rider: "Usman Tariq", amount: 3500, status: "pending" },
+  ]);
+  const [adminAccount, setAdminAccount] = useState(DEFAULT_ADMIN_ACCOUNT); // shared — Admin edits, everyone else sees it for top-ups
+  const [serviceProviders, setServiceProviders] = useState([]); // shared — new provider signups go here, Admin approves
+  const [riders, setRiders] = useState(RIDERS); // shared — rider's own profile edits reflect for Admin & Customer instantly
+  const [customerProfile, setCustomerProfile] = useState({ name: "Sana Ahmed", phone: "0300 1234567" }); // shared — customer's own edits reflect for Rider & Admin instantly
+  const t = T[lang];
+
+  const requestExit = () => setConfirmExit(true);
+
+  return (
+    <div className={dark ? "dark" : ""}>
+      <div className="min-h-screen bg-[#FAF9F6] dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-[Inter] transition-colors">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+          .font-display { font-family: 'Sora', sans-serif; }
+          .font-mono-tk { font-family: 'JetBrains Mono', monospace; }
+          * { font-family: 'Inter', sans-serif; }
+
+          /* Dark mode — direct overrides (not relying on Tailwind's dark: variant) */
+          .dark { background-color: #1c1917; color: #f5f5f4; }
+          .dark .bg-\\[\\#FAF9F6\\] { background-color: #1c1917 !important; }
+          .dark .bg-white { background-color: #292524 !important; }
+          .dark .bg-stone-50 { background-color: #3f3a37 !important; }
+          .dark .bg-stone-100 { background-color: #44403c !important; }
+          .dark .border-stone-200 { border-color: #44403c !important; }
+          .dark .border-stone-100 { border-color: #3f3a37 !important; }
+          .dark .border-orange-100 { border-color: rgba(249,115,22,0.25) !important; }
+          .dark .border-orange-200 { border-color: rgba(249,115,22,0.35) !important; }
+          .dark .text-stone-900 { color: #fafaf9 !important; }
+          .dark .text-stone-800 { color: #f5f5f4 !important; }
+          .dark .text-stone-700 { color: #e7e5e4 !important; }
+          .dark .text-stone-600 { color: #d6d3d1 !important; }
+          .dark .text-stone-500 { color: #a8a29e !important; }
+          .dark .text-stone-400 { color: #8a8480 !important; }
+          .dark .bg-orange-50 { background-color: rgba(249,115,22,0.12) !important; }
+          .dark .bg-black\\/40 { background-color: rgba(0,0,0,0.6) !important; }
+          .dark ::placeholder { color: #78716c !important; }
+
+          /* Fix: inputs/textareas must always inherit transparent bg + explicit readable text color */
+          textarea, input, select { background-color: transparent; color: #1c1917; }
+          .dark textarea, .dark input, .dark select { color: #f5f5f4; }
+
+          /* Auto-growing textarea for the order composer */
+          .autogrow { overflow: hidden; min-height: 90px; }
+        `}</style>
+        {screen === "landing" && <LandingPage onStart={() => setScreen("roleselect")} lang={lang} setLang={setLang} t={t} dark={dark} setDark={setDark} />}
+        {screen === "roleselect" && !role && <RoleSelect onSelect={setRole} lang={lang} setLang={setLang} t={t} onBackHome={() => setScreen("landing")} />}
+        {role === "customer" && <CustomerApp t={t} lang={lang} setLang={setLang} onExit={requestExit} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} adminAccount={adminAccount} riders={riders} customerProfile={customerProfile} setCustomerProfile={setCustomerProfile} />}
+        {role === "shopkeeper" && <ShopkeeperApp t={t} lang={lang} setLang={setLang} onExit={requestExit} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} adminAccount={adminAccount} />}
+        {role === "provider" && <ServiceProviderApp t={t} lang={lang} setLang={setLang} onExit={requestExit} dark={dark} setDark={setDark} adminAccount={adminAccount} providers={serviceProviders} setProviders={setServiceProviders} />}
+        {role === "rider" && <RiderApp t={t} lang={lang} setLang={setLang} onExit={requestExit} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} withdrawals={withdrawals} setWithdrawals={setWithdrawals} adminAccount={adminAccount} riders={riders} setRiders={setRiders} customerProfile={customerProfile} />}
+        {role === "admin" && <AdminApp t={t} lang={lang} setLang={setLang} onExit={requestExit} dark={dark} setDark={setDark} allOrders={allOrders} setAllOrders={setAllOrders} withdrawals={withdrawals} setWithdrawals={setWithdrawals} adminAccount={adminAccount} setAdminAccount={setAdminAccount} serviceProviders={serviceProviders} setServiceProviders={setServiceProviders} riders={riders} setRiders={setRiders} customerProfile={customerProfile} />}
+
+        {confirmExit && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-6">
+            <div className="bg-white dark:bg-stone-800 rounded-2xl p-6 max-w-xs w-full text-center">
+              <div className="w-11 h-11 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center mx-auto mb-3">
+                <LogOut size={18} className="text-red-500" strokeWidth={1.8} />
+              </div>
+              <p className="font-semibold text-stone-800 dark:text-stone-100 mb-1">Log out?</p>
+              <p className="text-sm text-stone-500 dark:text-stone-400 dark:text-stone-500 mb-5">You'll need to sign in again to continue.</p>
+              <div className="flex gap-2">
+                <GhostButton full onClick={() => setConfirmExit(false)}>No, stay</GhostButton>
+                <button onClick={() => { setConfirmExit(false); setRole(null); }}
+                  
